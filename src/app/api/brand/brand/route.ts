@@ -22,4 +22,22 @@ export async function POST(req: Request) {
   });
 
   return NextResponse.json(brand);
+}export async function DELETE(req: Request) {
+  const token = getBearerToken(req.headers.get("authorization"));
+  const user = token ? verifyJwt(token) : null;
+
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (user.role !== Role.BRAND) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  await prisma.brand.deleteMany({
+    where: { ownerId: user.id },
+  });
+
+  return NextResponse.json({ success: true });
 }
+
